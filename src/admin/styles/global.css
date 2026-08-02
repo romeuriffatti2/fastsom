@@ -1,0 +1,90 @@
+@import './variables.css';
+
+.admin-body-scope * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-body-scope {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.admin-body-scope a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-body-scope button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.admin-body-scope input, .admin-body-scope select, .admin-body-scope textarea {
+  font-family: inherit;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9375rem;
+  outline: none;
+  width: 100%;
+}
+
+.admin-body-scope input:focus, .admin-body-scope select:focus, .admin-body-scope textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.admin-body-scope .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius);
+}
+
+.admin-body-scope .btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.admin-body-scope .btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.admin-body-scope .btn-danger {
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+
+.admin-body-scope .btn-danger:hover {
+  background-color: var(--color-danger-dark);
+}
+
+.admin-body-scope .btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.admin-body-scope .btn-secondary:hover {
+  background-color: var(--bg-hover);
+}
+
+.admin-body-scope .card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
