@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,7 +19,7 @@ export default function LoginPage() {
 
     try {
       const data = await login({ email, senha });
-      setAuth(data.user, data.access_token);
+      setUser(data.user);
       toast.success(`Bem-vindo, ${data.user.nome}!`);
       navigate('/admin');
     } catch (err) {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAlbunsAdmin, createAlbum, deleteAlbum, toggleAlbumPublicar } from '../../services/galeria.service';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
+import { getImageUrl } from '../../../utils/imageUrl';
 import { Plus, Image, Trash2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -93,7 +94,7 @@ export default function GaleriaPage() {
             <div key={album.id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
               <div style={{ position: 'relative', height: '180px', backgroundColor: 'var(--bg-tertiary)' }}>
                 {album.capa_url ? (
-                  <img src={album.capa_url} alt={album.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getImageUrl(album.capa_url)} alt={album.nome} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff', padding: '4px' }} />
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
                     Sem fotos

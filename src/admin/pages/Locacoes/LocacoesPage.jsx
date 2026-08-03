@@ -4,7 +4,9 @@ import { getLocacoesAdmin, deleteLocacao, toggleLocacaoStatus, toggleLocacaoDest
 import DataTable from '../../components/DataTable/DataTable';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
-import { Plus, Edit, Trash2, Star } from 'lucide-react';
+import CategoriasModal from '../../components/CategoriasModal/CategoriasModal';
+import { getImageUrl } from '../../../utils/imageUrl';
+import { Plus, Edit, Trash2, Star, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LocacoesPage() {
@@ -14,6 +16,7 @@ export default function LocacoesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [catModalOpen, setCatModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchLocacoes = (page = 1, searchQuery = '') => {
@@ -77,7 +80,18 @@ export default function LocacoesPage() {
       render: (row) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {row.imagens && row.imagens.length > 0 ? (
-            <img src={row.imagens[0].url} alt="" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />
+            <img
+              src={getImageUrl(row.imagens[0].url)}
+              alt=""
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '4px',
+                objectFit: 'contain',
+                backgroundColor: '#ffffff',
+                padding: '2px',
+              }}
+            />
           ) : (
             <div style={{ width: '40px', height: '40px', borderRadius: '4px', backgroundColor: 'var(--bg-tertiary)' }} />
           )}
@@ -131,9 +145,14 @@ export default function LocacoesPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Gestão de Locações</h1>
-        <button onClick={() => navigate('/admin/locacoes/novo')} className="btn btn-primary">
-          <Plus size={18} /> Novo Equipamento
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button onClick={() => setCatModalOpen(true)} className="btn btn-secondary">
+            <Tag size={18} /> Categorias
+          </button>
+          <button onClick={() => navigate('/admin/locacoes/novo')} className="btn btn-primary">
+            <Plus size={18} /> Novo Equipamento
+          </button>
+        </div>
       </div>
 
       <DataTable
@@ -157,6 +176,14 @@ export default function LocacoesPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={deleteLoading}
+      />
+
+      <CategoriasModal
+        isOpen={catModalOpen}
+        onClose={() => {
+          setCatModalOpen(false);
+          fetchLocacoes(pagination.page, search);
+        }}
       />
     </div>
   );

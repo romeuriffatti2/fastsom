@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import '../App.css';
 import logoLocal from '../assets/logo.png';
+import imgNover from '../assets/fastsom-nover.avif';
+import imgLirio from '../assets/fastsom-lirio.avif';
 import { getConfiguracoes } from '../services/configuracoes';
 import { getLocacoes } from '../services/locacoes';
 import { getAlbuns, getFotosAlbum } from '../services/galeria';
 import { cadastrarNewsletter } from '../services/newsletter';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function LandingPage() {
   const [config, setConfig] = useState(null);
@@ -20,14 +23,18 @@ export default function LandingPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [configData, locacoesData, albunsData] = await Promise.all([
+        let [configData, locacoesData, albunsData] = await Promise.all([
           getConfiguracoes(),
           getLocacoes({ destaque: true }),
           getAlbuns(),
         ]);
 
+        if (!locacoesData || locacoesData.length === 0) {
+          locacoesData = await getLocacoes();
+        }
+
         if (configData) setConfig(configData);
-        if (locacoesData && locacoesData.length > 0) setLocacoes(locacoesData);
+        if (Array.isArray(locacoesData)) setLocacoes(locacoesData);
         if (albunsData && albunsData.length > 0) {
           setAlbuns(albunsData);
           const fotosPrimeiroAlbum = await getFotosAlbum(albunsData[0].id);
@@ -72,35 +79,30 @@ export default function LandingPage() {
     }
   };
 
-  const locacoesMock = [
-    {
-      id: 1,
-      nome: 'Trave Box Truss 800 Watts',
-      descricao: 'Brilho e cor para seu evento! 1x Grid Q15 (2x2) + Capa, 4x Par LED Quadrado.',
-      valor: '400.00',
-    },
-    {
-      id: 2,
-      nome: 'Tripé de Iluminação 2800 Watts',
-      descricao: 'Maior visibilidade para seu evento! 1x Tripé, 4x Par LED Quadrado, 2x Holofote.',
-      valor: '540.00',
-    },
-    {
-      id: 3,
-      nome: 'Trave Box Truss 320 Watts',
-      descricao: 'Estrutura compacta. 1x Grid Q15 (2x2), 6x Refletor LED Slim.',
-      valor: '270.00',
-    },
-    {
-      id: 4,
-      nome: 'Tripé de Iluminação 1000 Watts',
-      descricao: 'Iluminação potente. 1x Tripé, 4x Par LED Quadrado, 4x Refletor.',
-      valor: '340.00',
-    },
-  ];
+  const displayCards = Array.from({ length: 4 }, (_, idx) => locacoes[idx] || null);
 
-  const locacoesExibidas = locacoes.length > 0 ? locacoes : locacoesMock;
-  const logoSrc = config?.logo_url || logoLocal;
+  const renderHeroTitle = () => {
+    const rawTitle = config?.hero_titulo;
+    const defaultTitle = 'Você sonha com a festa, a gente faz acontecer!';
+    const text = (rawTitle && rawTitle !== 'Fast Som Eventos') ? rawTitle : defaultTitle;
+
+    const words = text.trim().split(/\s+/);
+    if (words.length > 1) {
+      const lastWord = words.pop();
+      return (
+        <>
+          {words.join(' ')} <span className="text-gradient">{lastWord}</span>
+        </>
+      );
+    }
+    return text;
+  };
+
+  const heroSubtitle = (config?.hero_subtitulo && config.hero_subtitulo !== 'Você sonha com a festa, a gente faz acontecer!')
+    ? config.hero_subtitulo
+    : 'Estamos preparados para organizar seu evento com excelência.';
+
+  const logoSrc = config?.logo_url ? getImageUrl(config.logo_url) : logoLocal;
   const whatsappNum = config?.whatsapp || '5551997455990';
 
   return (
@@ -118,7 +120,6 @@ export default function LandingPage() {
               <li><a href="#locacoes">Locações</a></li>
               <li><a href="#fotos">Fotos</a></li>
               <li><a href="#contatos">Contatos</a></li>
-              <li><a href="/admin/login" style={{ color: '#6c63ff', fontWeight: 600 }}>Área Restrita</a></li>
             </ul>
           </nav>
         </div>
@@ -128,8 +129,8 @@ export default function LandingPage() {
         {/* HERO SECTION */}
         <section id="home" className="hero container">
           <div className="hero-content">
-            <h1>{config?.hero_titulo || 'Você sonha com a festa, a gente faz'} <span className="text-gradient">acontecer!</span></h1>
-            <p>{config?.hero_subtitulo || 'Estamos preparados para organizar seu evento com excelência.'}</p>
+            <h1>{renderHeroTitle()}</h1>
+            <p>{heroSubtitle}</p>
             <div className="hero-buttons">
               <a href="#locacoes" className="btn btn-primary">Ver Locações</a>
               <a href="#contatos" className="btn btn-secondary">Falar com Especialista</a>
@@ -143,16 +144,17 @@ export default function LandingPage() {
             <div className="empresa-grid">
               <div className="empresa-text">
                 <img src={logoSrc} alt="Logo" className="empresa-logo-inline" />
-                <p>{config?.empresa_texto_1 || 'A Fastsom vem consolidando sua trajetória no mercado gaúcho de eventos através de um trabalho pautado pela qualidade, compromisso e excelência na entrega de cada projeto. Atuando com locação de equipamentos e prestação de serviços especializados, a empresa participa anualmente de centenas de eventos sociais e corporativos, oferecendo soluções completas.'}</p>
-                <p>{config?.empresa_texto_2 || 'Acreditamos que a qualidade da estrutura faz toda a diferença na experiência do público. Por isso, investimos constantemente em tecnologia, equipamentos modernos e profissionais capacitados, garantindo resultados à altura das expectativas.'}</p>
-                <p>{config?.empresa_texto_3 || 'Atendemos casamentos, formaturas, festas de 15 anos, eventos corporativos e diversas outras ocasiões.'}</p>
+                <p>{config?.empresa_texto_1 || 'A Fastsom vem consolidando sua trajetória no mercado gaúcho de eventos através de um trabalho pautado pela qualidade, compromisso e excelência na entrega de cada projeto. Atuando com locação de equipamentos e prestação de serviços especializados, a empresa participa anualmente de centenas de eventos sociais e corporativos, oferecendo soluções completas para diferentes tipos de celebrações e produções.'}</p>
+                <p>{config?.empresa_texto_2 || 'Acreditamos que a qualidade da estrutura faz toda a diferença na experiência do público e no sucesso de um evento. Por isso, investimos constantemente em tecnologia, equipamentos modernos e profissionais capacitados, garantindo resultados à altura das expectativas de nossos clientes e parceiros.'}</p>
+                <p>{config?.empresa_texto_3 || 'A Fastsom atende casamentos, formaturas, festas de 15 anos, eventos corporativos, solenidades, shows e diversas outras ocasiões em todo o Rio Grande do Sul, sempre com dedicação, responsabilidade e atenção aos detalhes.'}</p>
+                <p>{config?.empresa_texto_4 || 'Quem já conhece o nosso trabalho sabe do comprometimento e da seriedade que fazem parte da essência da empresa. E para aqueles que ainda irão viver essa experiência conosco, será um prazer fazer parte de momentos especiais e transformar cada evento em uma ocasião memorável.'}</p>
               </div>
               <div className="empresa-images">
-                <div className="img-placeholder">
-                  <span>[Estrutura Fastsom]</span>
+                <div className="img-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src={imgNover} alt="Estrutura Fastsom" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <div className="img-placeholder">
-                  <span>[Iluminação e Som]</span>
+                <div className="img-placeholder" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src={imgLirio} alt="Iluminação e Som Fastsom" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               </div>
             </div>
@@ -193,22 +195,41 @@ export default function LandingPage() {
           <div className="container">
             <h2 className="section-title">Locações</h2>
             <div className="catalog-grid">
-              {locacoesExibidas.map((item) => (
-                <div key={item.id} className="product-card glass-panel">
-                  <div className="product-image-placeholder">
-                    {item.imagem_principal ? (
-                      <img src={item.imagem_principal} alt={item.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span>[Equipamento]</span>
-                    )}
+              {displayCards.map((item, index) =>
+                item ? (
+                  <div key={item.id} className="product-card glass-panel">
+                    <div className="product-image-placeholder">
+                      {item.imagem_principal ? (
+                        <img
+                          src={getImageUrl(item.imagem_principal)}
+                          alt={item.nome}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>[Equipamento]</span>
+                      )}
+                    </div>
+                    <div className="product-info">
+                      <h4 className="product-title">{item.nome}</h4>
+                      <p className="product-desc">{item.descricao}</p>
+                      <div className="product-price">
+                        R$ {parseFloat(item.valor || 0).toFixed(2).replace('.', ',')}
+                      </div>
+                    </div>
                   </div>
-                  <div className="product-info">
-                    <h4 className="product-title">{item.nome}</h4>
-                    <p className="product-desc">{item.descricao}</p>
-                    <div className="product-price">R$ {parseFloat(item.valor).toFixed(2).replace('.', ',')}</div>
+                ) : (
+                  <div key={`empty-${index}`} className="product-card glass-panel" style={{ opacity: 0.4 }}>
+                    <div className="product-image-placeholder" style={{ background: '#f8fafc' }}>
+                      <span style={{ color: '#94a3b8' }}>[Disponível]</span>
+                    </div>
+                    <div className="product-info">
+                      <h4 className="product-title" style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>Espaço Reservado</h4>
+                      <p className="product-desc">Equipamento em breve</p>
+                      <div className="product-price" style={{ fontSize: '1.1rem', opacity: 0.5 }}>R$ --,--</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </div>
         </section>
@@ -220,7 +241,7 @@ export default function LandingPage() {
             <div className="gallery-skeleton">
               <div className="gallery-main-image">
                 {fotos.length > 0 ? (
-                  <img src={fotos[0].url} alt="Foto Destaque" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getImageUrl(fotos[0].url)} alt="Foto Destaque" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <span>[Foto Destaque da Galeria]</span>
                 )}
@@ -229,7 +250,7 @@ export default function LandingPage() {
                 {fotos.length > 0 ? (
                   fotos.slice(1, 7).map((foto) => (
                     <div key={foto.id} className="thumb-placeholder" style={{ overflow: 'hidden' }}>
-                      <img src={foto.url} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={getImageUrl(foto.url)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   ))
                 ) : (

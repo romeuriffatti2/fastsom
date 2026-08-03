@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { UploadCloud, Trash2, Star } from 'lucide-react';
+import { getImageUrl } from '../../../utils/imageUrl';
 
 export default function ImageUpload({
   existingImages = [],
@@ -62,7 +63,7 @@ export default function ImageUpload({
                 border: img.is_principal || img.is_capa ? '2px solid var(--color-primary)' : '1px solid var(--border)',
               }}
             >
-              <img src={img.url} alt="Mídia" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={getImageUrl(img.url)} alt="Mídia" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff', padding: '4px' }} />
 
               <div style={{
                 position: 'absolute',

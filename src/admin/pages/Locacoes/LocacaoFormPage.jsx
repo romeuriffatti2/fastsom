@@ -10,8 +10,9 @@ import {
   setLocacaoImagemPrincipal,
 } from '../../services/locacoes.service';
 import ImageUpload from '../../components/ImageUpload/ImageUpload';
+import CategoriasModal from '../../components/CategoriasModal/CategoriasModal';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Star, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save, Star, CheckCircle, Plus } from 'lucide-react';
 
 export default function LocacaoFormPage() {
   const { id } = useParams();
@@ -27,6 +28,7 @@ export default function LocacaoFormPage() {
     destaque: false,
   });
   const [categorias, setCategorias] = useState([]);
+  const [catModalOpen, setCatModalOpen] = useState(false);
   const [imagens, setImagens] = useState([]);
   const [pendingFiles, setPendingFiles] = useState([]);
   const [pendingPreviews, setPendingPreviews] = useState([]);
@@ -59,12 +61,19 @@ export default function LocacaoFormPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Normaliza o valor: substitui vírgula por ponto antes de enviar à API
+    const payload = {
+      ...formData,
+      valor: parseFloat(String(formData.valor).replace(',', '.')),
+      categoria_id: formData.categoria_id || null,
+    };
+
     try {
       if (isEdit) {
-        await updateLocacao(id, formData);
+        await updateLocacao(id, payload);
         toast.success('Locação atualizada com sucesso.');
       } else {
-        const created = await createLocacao(formData);
+        const created = await createLocacao(payload);
         if (pendingFiles.length > 0) {
           setUploading(true);
           try {
@@ -175,9 +184,28 @@ export default function LocacaoFormPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.375rem' }}>
-                Categoria
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                  Categoria
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setCatModalOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  <Plus size={14} /> Nova Categoria
+                </button>
+              </div>
               <select
                 value={formData.categoria_id}
                 onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
@@ -296,6 +324,15 @@ export default function LocacaoFormPage() {
           />
         </div>
       </div>
+
+      <CategoriasModal
+        isOpen={catModalOpen}
+        onClose={() => setCatModalOpen(false)}
+        onCategoryCreated={(newCat) => {
+          getCategorias().then(setCategorias);
+          setFormData((prev) => ({ ...prev, categoria_id: newCat.id }));
+        }}
+      />
     </div>
   );
 }

@@ -8,32 +8,34 @@ const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login')) {
+    const isAuthRoute = originalRequest.url.includes('/auth/login') ||
+                        originalRequest.url.includes('/auth/refresh') ||
+                        originalRequest.url.includes('/auth/me');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
       try {
         const { data } = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
-        const newToken = data.data.access_token;
-        const currentUser = useAuthStore.getState().user;
-        useAuthStore.getState().setAuth(currentUser, newToken);
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        if (data.data?.user) {
+          useAuthStore.getState().setUser(data.data.user);
+        }
         return api(originalRequest);
       } catch {
         useAuthStore.getState().clearAuth();
-        window.location.href = '/admin/login';
+        if (window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login';
+        }
       }
     }
+
+    if (error.response?.status === 401 && isAuthRoute && !originalRequest.url.includes('/auth/login')) {
+      useAuthStore.getState().clearAuth();
+    }
+
     return Promise.reject(error);
   }
 );
